@@ -12,6 +12,7 @@
     "calculateExercises": "tsc && node exerciseCalculator.ts"
   },
   "devDependencies": {
+    "@types/node": "^25.9.3",
     "typescript": "^6.0.3"
   }
 }

@@ -1,3 +1,10 @@
+import { isPositiveNumber, isNonNegativeNumber } from './utils.ts';
+
+interface WorkoutData {
+  dailyHours: number[];
+  target: number;
+}
+
 type Rating = 1 | 2 | 3;
 
 interface RatingResult {
@@ -23,6 +30,18 @@ interface ExerciseSummary {
   ratingDescription: string;
 }
 
+const parseExerciseArguments = (args: string[]): WorkoutData => {
+  if (args.length < 4) throw new Error('Not enough arguments');
+
+  const [target, ...dailyHours] = args.slice(2).map((arg) => Number(arg));
+
+  if (isPositiveNumber(target) && dailyHours.every(isNonNegativeNumber)) {
+    return { dailyHours, target };
+  } else {
+    throw new Error('Provided values were not valid numbers!');
+  }
+};
+
 const calculateExercises = (
   dailyHours: number[],
   target: number,
@@ -46,4 +65,13 @@ const calculateExercises = (
   };
 };
 
-console.log(calculateExercises([3, 0, 2, 4.5, 0, 3, 1], 2));
+try {
+  const { dailyHours, target } = parseExerciseArguments(process.argv);
+  console.log(calculateExercises(dailyHours, target));
+} catch (error: unknown) {
+  let errorMessage = 'Something bad happened.';
+  if (error instanceof Error) {
+    errorMessage += ' Error: ' + error.message;
+  }
+  console.log(errorMessage);
+}

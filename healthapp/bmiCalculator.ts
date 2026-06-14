@@ -1,3 +1,10 @@
+import { isPositiveNumber } from './utils.ts';
+
+interface BodyMetrics {
+  height: number;
+  weight: number;
+}
+
 type BmiCategory =
   | 'Underweight (Severe thinness)'
   | 'Underweight (Moderate thinness)'
@@ -7,6 +14,20 @@ type BmiCategory =
   | 'Obese (Class I)'
   | 'Obese (Class II)'
   | 'Obese (Class III)';
+
+const parseBmiArguments = (args: string[]): BodyMetrics => {
+  if (args.length < 4) throw new Error('Not enough arguments');
+  if (args.length > 4) throw new Error('Too many arguments');
+
+  const height = Number(args[2]);
+  const weight = Number(args[3]);
+
+  if (isPositiveNumber(height) && isPositiveNumber(weight)) {
+    return { height, weight };
+  } else {
+    throw new Error('Provided values were not positive numbers!');
+  }
+};
 
 const calculateBmi = (heightInCm: number, weightInKg: number): BmiCategory => {
   const heightInM = heightInCm / 100;
@@ -21,4 +42,13 @@ const calculateBmi = (heightInCm: number, weightInKg: number): BmiCategory => {
   return 'Obese (Class III)';
 };
 
-console.log(calculateBmi(180, 74));
+try {
+  const { height, weight } = parseBmiArguments(process.argv);
+  console.log(calculateBmi(height, weight));
+} catch (error: unknown) {
+  let errorMessage = 'Something bad happened.';
+  if (error instanceof Error) {
+    errorMessage += ' Error: ' + error.message;
+  }
+  console.log(errorMessage);
+}
