@@ -29,7 +29,10 @@ const parseBmiArguments = (args: string[]): BodyMetrics => {
   }
 };
 
-const calculateBmi = (heightInCm: number, weightInKg: number): BmiCategory => {
+export const calculateBmi = (
+  heightInCm: number,
+  weightInKg: number,
+): BmiCategory => {
   const heightInM = heightInCm / 100;
   const bmi = weightInKg / (heightInM * heightInM);
   if (bmi < 16) return 'Underweight (Severe thinness)';
@@ -42,13 +45,15 @@ const calculateBmi = (heightInCm: number, weightInKg: number): BmiCategory => {
   return 'Obese (Class III)';
 };
 
-try {
-  const { height, weight } = parseBmiArguments(process.argv);
-  console.log(calculateBmi(height, weight));
-} catch (error: unknown) {
-  let errorMessage = 'Something bad happened.';
-  if (error instanceof Error) {
-    errorMessage += ' Error: ' + error.message;
+if (process.argv[1] === import.meta.filename) {
+  try {
+    const { height, weight } = parseBmiArguments(process.argv);
+    console.log(calculateBmi(height, weight));
+  } catch (error: unknown) {
+    let errorMessage = 'Something bad happened.';
+    if (error instanceof Error) {
+      errorMessage += ' Error: ' + error.message;
+    }
+    console.log(errorMessage);
   }
-  console.log(errorMessage);
 }
