@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const Gender = {
   Male: 'male',
   Female: 'female',
@@ -12,15 +14,21 @@ export interface Diagnosis {
   latin?: string;
 }
 
-export interface Patient {
-  id: string;
-  name: string;
-  dateOfBirth: string;
-  ssn: string;
-  gender: Gender;
-  occupation: string;
-}
+export const NewPatientSchema = z.object({
+  name: z.string().trim().min(1, 'name cannot be empty or contain only spaces'),
+  dateOfBirth: z.iso.date(),
+  ssn: z.string().trim().min(1, 'ssn cannot be empty or contain only spaces'),
+  gender: z.enum(Gender),
+  occupation: z
+    .string()
+    .trim()
+    .min(1, 'occupation cannot be empty or contain only spaces'),
+});
 
 export type NonSensitivePatient = Omit<Patient, 'ssn'>;
 
-export type NewPatient = Omit<Patient, 'id'>;
+export type NewPatient = z.infer<typeof NewPatientSchema>;
+
+export interface Patient extends NewPatient {
+  id: string;
+}
