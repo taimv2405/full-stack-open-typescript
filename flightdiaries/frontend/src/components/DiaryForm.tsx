@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useField } from '../hooks/useField';
-import type { NewDiary, Visibility, Weather } from '../types';
+import { Visibility, Weather, type NewDiary } from '../types';
 
 interface Props {
   onCreate: (newDiary: NewDiary) => Promise<boolean>;
@@ -7,8 +8,8 @@ interface Props {
 
 const DiaryForm = ({ onCreate }: Props) => {
   const date = useField('date');
-  const weather = useField('text');
-  const visibility = useField('text');
+  const [weather, setWeather] = useState<Weather>(Weather.Sunny);
+  const [visibility, setVisibility] = useState<Visibility>(Visibility.Great);
   const comment = useField('text');
 
   const handleCreateDiary = async (
@@ -17,22 +18,40 @@ const DiaryForm = ({ onCreate }: Props) => {
     event.preventDefault();
     const success = await onCreate({
       date: date.inputProps.value,
-      weather: weather.inputProps.value as Weather,
-      visibility: visibility.inputProps.value as Visibility,
+      weather,
+      visibility,
       comment: comment.inputProps.value,
     });
     if (success) {
       date.reset();
-      weather.reset();
-      visibility.reset();
+      setWeather(Weather.Sunny);
+      setVisibility(Visibility.Great);
       comment.reset();
     }
+  };
+
+  const handleChangeWeather = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWeather(event.target.value as Weather);
+  };
+
+  const handleChangeVisibility = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setVisibility(event.target.value as Visibility);
   };
 
   return (
     <>
       <h2>Create diary</h2>
-      <form onSubmit={handleCreateDiary}>
+      <form
+        onSubmit={handleCreateDiary}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          alignItems: 'start',
+        }}
+      >
         <div>
           <label>
             date:
@@ -40,16 +59,34 @@ const DiaryForm = ({ onCreate }: Props) => {
           </label>
         </div>
         <div>
-          <label>
-            weather:
-            <input {...weather.inputProps} />
-          </label>
+          weather:
+          {Object.values(Weather).map((weatherType) => (
+            <label key={weatherType}>
+              {weatherType}
+              <input
+                type="radio"
+                name="weather"
+                value={weatherType}
+                checked={weather === weatherType}
+                onChange={handleChangeWeather}
+              />
+            </label>
+          ))}
         </div>
         <div>
-          <label>
-            visibility:
-            <input {...visibility.inputProps} />
-          </label>
+          visibility:
+          {Object.values(Visibility).map((visibilityType) => (
+            <label key={visibilityType}>
+              {visibilityType}
+              <input
+                type="radio"
+                name="visibility"
+                value={visibilityType}
+                checked={visibility === visibilityType}
+                onChange={handleChangeVisibility}
+              />
+            </label>
+          ))}
         </div>
         <div>
           <label>
