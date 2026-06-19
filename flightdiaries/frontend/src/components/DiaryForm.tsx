@@ -2,7 +2,7 @@ import { useField } from '../hooks/useField';
 import type { NewDiary, Visibility, Weather } from '../types';
 
 interface Props {
-  onCreate: (newDiary: NewDiary) => void;
+  onCreate: (newDiary: NewDiary) => Promise<boolean>;
 }
 
 const DiaryForm = ({ onCreate }: Props) => {
@@ -11,18 +11,22 @@ const DiaryForm = ({ onCreate }: Props) => {
   const visibility = useField('text');
   const comment = useField('text');
 
-  const handleCreateDiary = (event: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleCreateDiary = async (
+    event: React.SyntheticEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
-    onCreate({
+    const success = await onCreate({
       date: date.inputProps.value,
       weather: weather.inputProps.value as Weather,
       visibility: visibility.inputProps.value as Visibility,
       comment: comment.inputProps.value,
     });
-    date.reset();
-    weather.reset();
-    visibility.reset();
-    comment.reset();
+    if (success) {
+      date.reset();
+      weather.reset();
+      visibility.reset();
+      comment.reset();
+    }
   };
 
   return (
