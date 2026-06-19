@@ -10,6 +10,14 @@ router.get('/', (_req, res: Response<NonSensitivePatient[]>) => {
   res.json(patientService.getAllNonSensitive());
 });
 
+router.get('/:id', (req, res: Response<Patient | { error: string }>) => {
+  const returnedPatient = patientService.getById(req.params.id);
+  if (!returnedPatient) {
+    return res.status(404).json({ error: 'Patient not found' });
+  }
+  return res.json(returnedPatient);
+});
+
 router.post(
   '/',
   newPatientParser,
