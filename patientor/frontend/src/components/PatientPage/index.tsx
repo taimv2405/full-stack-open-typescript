@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { Typography, Box } from '@mui/material';
+import { Typography, Box, List, ListItem, ListItemText } from '@mui/material';
 import FemaleIcon from '@mui/icons-material/Female';
 import MaleIcon from '@mui/icons-material/Male';
 import TransgenderIcon from '@mui/icons-material/Transgender';
@@ -64,6 +64,25 @@ const PatientPage = () => {
       <Typography>ssn: {patient.ssn}</Typography>
       <Typography>occupation: {patient.occupation}</Typography>
       <Typography>dateOfBirth: {patient.dateOfBirth}</Typography>
+      <Typography component="h2" variant="h6" sx={{ mt: 1 }}>
+        entries
+      </Typography>
+      {patient.entries.map((entry) => (
+        <Box key={entry.id}>
+          <Typography>
+            {entry.date} <i>{entry.description}</i>
+          </Typography>
+          {entry.diagnosisCodes && (
+            <List dense disablePadding sx={{ listStyleType: 'disc', pl: 4 }}>
+              {entry.diagnosisCodes.map((code) => (
+                <ListItem key={code} sx={{ display: 'list-item', p: 0 }}>
+                  <ListItemText>{code}</ListItemText>
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </Box>
+      ))}
     </>
   );
 };
