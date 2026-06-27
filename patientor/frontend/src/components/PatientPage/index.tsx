@@ -9,7 +9,7 @@ import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import WorkIcon from '@mui/icons-material/Work';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-
+import { NewEntryForm } from './NewEntryForm';
 import {
   Diagnosis,
   Patient,
@@ -17,6 +17,7 @@ import {
   HealthCheckEntry,
   HospitalEntry,
   OccupationalHealthcareEntry,
+  NewEntry,
 } from '../../types';
 import patientService from '../../services/patients';
 import diagnosisService from '../../services/diagnoses';
@@ -182,6 +183,11 @@ const PatientPage = () => {
   if (error) return <Typography>{error}</Typography>;
   if (loading || !patient) return <Typography>Loading patient...</Typography>;
 
+  const handleAddEntry = async (entry: NewEntry) => {
+    const updatedPatient = await patientService.addEntry(patient.id, entry);
+    setPatient(updatedPatient);
+  };
+
   return (
     <>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -200,6 +206,7 @@ const PatientPage = () => {
       <Typography component="h2" variant="h6" sx={{ mt: 1 }}>
         entries
       </Typography>
+      <NewEntryForm onSubmit={handleAddEntry} />
       {patient.entries.map((entry) => (
         <EntryDetail key={entry.id} entry={entry} diagnoses={diagnoses} />
       ))}
