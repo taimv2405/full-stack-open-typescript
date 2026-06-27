@@ -6,9 +6,10 @@ import FemaleIcon from '@mui/icons-material/Female';
 import MaleIcon from '@mui/icons-material/Male';
 import TransgenderIcon from '@mui/icons-material/Transgender';
 
-import { Patient } from '../../types';
+import { Diagnosis, Patient } from '../../types';
 
 import patientService from '../../services/patients';
+import diagnosisService from '../../services/diagnoses';
 
 const GenderIcon = ({ gender }: { gender: string }) => {
   if (gender === 'male') return <MaleIcon />;
@@ -19,6 +20,7 @@ const GenderIcon = ({ gender }: { gender: string }) => {
 const PatientPage = () => {
   const { id } = useParams();
   const [patient, setPatient] = useState<Patient | null>(null);
+  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -26,8 +28,12 @@ const PatientPage = () => {
     const fetchPatient = async () => {
       if (!id) return;
       try {
-        const patient = await patientService.getById(id);
+        const [patient, diagnoses] = await Promise.all([
+          patientService.getById(id),
+          diagnosisService.getAll(),
+        ]);
         setPatient(patient);
+        setDiagnoses(diagnoses);
         setLoading(false);
       } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -76,7 +82,13 @@ const PatientPage = () => {
             <List dense disablePadding sx={{ listStyleType: 'disc', pl: 4 }}>
               {entry.diagnosisCodes.map((code) => (
                 <ListItem key={code} sx={{ display: 'list-item', p: 0 }}>
-                  <ListItemText>{code}</ListItemText>
+                  <ListItemText>
+                    {code}{' '}
+                    {
+                      diagnoses.find((diagnosis) => diagnosis.code === code)
+                        ?.name
+                    }
+                  </ListItemText>
                 </ListItem>
               ))}
             </List>
