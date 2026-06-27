@@ -206,7 +206,7 @@ const PatientPage = () => {
       <Typography component="h2" variant="h6" sx={{ mt: 1 }}>
         entries
       </Typography>
-      <NewEntryForm onSubmit={handleAddEntry} />
+      <NewEntryForm onSubmit={handleAddEntry} diagnoses={diagnoses} />
       {patient.entries.map((entry) => (
         <EntryDetail key={entry.id} entry={entry} diagnoses={diagnoses} />
       ))}

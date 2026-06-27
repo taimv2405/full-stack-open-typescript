@@ -3,9 +3,11 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   FormControl,
   InputLabel,
   MenuItem,
+  OutlinedInput,
   Select,
   SelectChangeEvent,
   TextField,
@@ -13,33 +15,35 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import useField from '../../hooks/useField';
-import { HealthCheckRating, NewEntry } from '../../types';
+import { Diagnosis, HealthCheckRating, NewEntry } from '../../types';
 
 export const NewEntryForm = ({
   onSubmit,
+  diagnoses,
 }: {
   onSubmit: (entry: NewEntry) => Promise<void>;
+  diagnoses: Diagnosis[];
 }) => {
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState('');
-  const [entryType, setEntryType] = useState('');
+  const [entryType, setEntryType] = useState('HealthCheck');
 
-  const date = useField('text');
+  const date = useField('date');
   const description = useField('text');
   const specialist = useField('text');
-  const diagnosisCodes = useField('text');
+  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
 
   // HealthCheck
-  const healthCheckRating = useField('number');
+  const [healthCheckRating, setHealthCheckRating] = useState<number>(0);
 
   // Hospital
-  const dischargeDate = useField('text');
+  const dischargeDate = useField('date');
   const dischargeCriteria = useField('text');
 
   // Occupational Healthcare
   const employerName = useField('text');
-  const sickLeaveStart = useField('text');
-  const sickLeaveEnd = useField('text');
+  const sickLeaveStart = useField('date');
+  const sickLeaveEnd = useField('date');
 
   const toggleVisibility = () => setVisible(!visible);
 
@@ -47,14 +51,14 @@ export const NewEntryForm = ({
     date.reset();
     description.reset();
     specialist.reset();
-    diagnosisCodes.reset();
-    healthCheckRating.reset();
+    setSelectedCodes([]);
+    setHealthCheckRating(0);
     dischargeDate.reset();
     dischargeCriteria.reset();
     employerName.reset();
     sickLeaveStart.reset();
     sickLeaveEnd.reset();
-    setEntryType('');
+    setEntryType('HealthCheck');
   };
 
   const handleAdd = async () => {
@@ -63,9 +67,7 @@ export const NewEntryForm = ({
         date: date.inputProps.value,
         description: description.inputProps.value,
         specialist: specialist.inputProps.value,
-        diagnosisCodes: diagnosisCodes.inputProps.value
-          ? diagnosisCodes.inputProps.value.split(',').map((c) => c.trim())
-          : undefined,
+        diagnosisCodes: selectedCodes.length > 0 ? selectedCodes : undefined,
       };
 
       let entry: NewEntry;
@@ -74,9 +76,7 @@ export const NewEntryForm = ({
           entry = {
             ...base,
             type: 'HealthCheck',
-            healthCheckRating: Number(
-              healthCheckRating.inputProps.value,
-            ) as HealthCheckRating,
+            healthCheckRating: healthCheckRating as HealthCheckRating,
           };
           break;
         case 'Hospital':
@@ -135,7 +135,7 @@ export const NewEntryForm = ({
   if (!visible) {
     return (
       <Button variant="contained" sx={{ mb: 2 }} onClick={toggleVisibility}>
-        ADD ENTRY
+        Add New Entry
       </Button>
     );
   }
@@ -171,6 +171,7 @@ export const NewEntryForm = ({
         label="Date"
         required
         margin="dense"
+        slotProps={{ inputLabel: { shrink: true } }}
         {...date.inputProps}
       />
       <TextField
@@ -187,21 +188,58 @@ export const NewEntryForm = ({
         margin="dense"
         {...specialist.inputProps}
       />
-      <TextField
-        fullWidth
-        label="Diagnosis Codes (comma-separated)"
-        margin="dense"
-        {...diagnosisCodes.inputProps}
-      />
+
+      <FormControl fullWidth margin="dense">
+        <InputLabel id="diagnosis-codes-label">Diagnosis Codes</InputLabel>
+        <Select
+          labelId="diagnosis-codes-label"
+          id="diagnosis-codes-select"
+          multiple
+          value={selectedCodes}
+          onChange={(e) => {
+            const val = e.target.value as string | string[];
+            setSelectedCodes(typeof val === 'string' ? val.split(',') : val);
+          }}
+          input={
+            <OutlinedInput id="diagnosis-codes-input" label="Diagnosis Codes" />
+          }
+          renderValue={(selected) => (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              {selected.map((code) => (
+                <Chip key={code} label={code} />
+              ))}
+            </Box>
+          )}
+        >
+          {diagnoses.map((d) => (
+            <MenuItem key={d.code} value={d.code}>
+              {d.code} — {d.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
       {entryType === 'HealthCheck' && (
-        <TextField
-          fullWidth
-          label="Health Check Rating (0-3)"
-          required
-          margin="dense"
-          {...healthCheckRating.inputProps}
-        />
+        <FormControl fullWidth margin="dense" required>
+          <InputLabel id="health-check-rating-label">
+            Health Check Rating
+          </InputLabel>
+          <Select
+            labelId="health-check-rating-label"
+            id="health-check-rating-select"
+            value={String(healthCheckRating)}
+            label="Health Check Rating"
+            onChange={(event: SelectChangeEvent) =>
+              setHealthCheckRating(Number(event.target.value))
+            }
+          >
+            {Object.entries(HealthCheckRating).map(([label, value]) => (
+              <MenuItem key={value} value={value}>
+                {value} - {label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       )}
 
       {entryType === 'Hospital' && (
@@ -211,6 +249,7 @@ export const NewEntryForm = ({
             label="Discharge Date"
             required
             margin="dense"
+            slotProps={{ inputLabel: { shrink: true } }}
             {...dischargeDate.inputProps}
           />
           <TextField
@@ -236,12 +275,14 @@ export const NewEntryForm = ({
             fullWidth
             label="Sick Leave Start"
             margin="dense"
+            slotProps={{ inputLabel: { shrink: true } }}
             {...sickLeaveStart.inputProps}
           />
           <TextField
             fullWidth
             label="Sick Leave End"
             margin="dense"
+            slotProps={{ inputLabel: { shrink: true } }}
             {...sickLeaveEnd.inputProps}
           />
         </>
@@ -249,10 +290,10 @@ export const NewEntryForm = ({
 
       <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
         <Button variant="contained" onClick={handleAdd}>
-          ADD
+          Add
         </Button>
         <Button variant="outlined" onClick={toggleVisibility}>
-          CANCEL
+          Cancel
         </Button>
       </Box>
     </Box>
